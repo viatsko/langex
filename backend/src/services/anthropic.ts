@@ -105,6 +105,72 @@ Respond in JSON format only, no markdown:
   return parseJsonResponse(content.text) as TranslationResult;
 }
 
+export async function translateWithSuggestion(
+  text: string,
+  suggestion: string,
+  currentTranslation: { english: string; russian: string; turkish: string }
+): Promise<TranslationResult> {
+  const message = await withRetry(() => anthropic.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 1024,
+    messages: [
+      {
+        role: "user",
+        content: `You are a language translation assistant. The user has a translation that they believe is incorrect and wants to fix it.
+
+Original input: "${text}"
+
+Current translation:
+- English: ${currentTranslation.english}
+- Russian: ${currentTranslation.russian}
+- Turkish: ${currentTranslation.turkish}
+
+User's suggestion for correction: "${suggestion}"
+
+Please review the user's suggestion and provide a corrected translation. The user's suggestion might indicate:
+- A different meaning they intended
+- A correction to one of the translations
+- Context that changes the interpretation
+
+Important:
+- Consider the user's suggestion carefully
+- Provide corrected translations to all three languages
+- Identify the part of speech
+- Assign 1-3 category tags from this list: kitchen, bathroom, bedroom, living-room, office, restaurant, cafe, street, transport, airport, hotel, hospital, pharmacy, shopping, clothing, food, drinks, family, body, emotions, time, weather, numbers, colors, animals, nature, greetings, common-phrases, travel, work, school, sports, music, technology. Only use tags that apply.
+- Provide morphological breakdown of the Turkish word
+
+Respond in JSON format only, no markdown:
+{
+  "detectedLanguage": "en" or "ru" or "tr",
+  "english": "the corrected English word/phrase",
+  "russian": "the corrected Russian word/phrase (in Cyrillic)",
+  "turkish": "the corrected Turkish translation (with proper Turkish characters ş, ı, ğ, ü, ö, ç)",
+  "partOfSpeech": "noun/verb/adjective/adverb/pronoun/preposition/conjunction/interjection/phrase",
+  "pronunciation": "phonetic pronunciation guide for Turkish",
+  "tags": ["relevant", "category", "tags"],
+  "morphologyBreakdown": {
+    "root": "the Turkish root word(s)",
+    "affixes": [
+      {"affix": "suffix or prefix", "meaning": "what it means", "type": "suffix/prefix/infix"}
+    ],
+    "explanation": "Brief explanation of how the Turkish word/phrase is constructed"
+  },
+  "examples": [
+    {"turkish": "example sentence in Turkish", "pronunciation": "phonetic pronunciation of Turkish sentence", "english": "English translation", "russian": "Russian translation"}
+  ]
+}`,
+      },
+    ],
+  }));
+
+  const content = message.content[0];
+  if (content.type !== "text") {
+    throw new Error("Unexpected response type");
+  }
+
+  return parseJsonResponse(content.text) as TranslationResult;
+}
+
 export async function askTurkishQuestion(question: string): Promise<{
   answer: string;
   turkish?: string;
