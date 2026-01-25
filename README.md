@@ -16,7 +16,7 @@ A personal Turkish language learning platform with grammar cards, dictionary wit
    ```
 
 3. **Access the app**
-   - Frontend: http://localhost:3000
+   - Frontend: http://localhost:5000
    - Backend API: http://localhost:4000
 
 ## Features
