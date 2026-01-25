@@ -6,7 +6,7 @@ import { aiRouter } from "./routes/ai.js";
 import { translateRouter } from "./routes/translate.js";
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
