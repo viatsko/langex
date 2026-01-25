@@ -1,14 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Search, Trash2 } from "lucide-react";
+import { Plus, Search, Trash2, Tag, X, ArrowDownAZ, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -17,36 +12,79 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { dictionaryApi, type DictionaryEntry } from "@/lib/api";
+import { TurkishText } from "@/components/turkish-text";
+import { useToast } from "@/components/ui/use-toast";
+
+function TagEditor({ tags, onTagsChange }: { tags: string[]; onTagsChange: (tags: string[]) => void }) {
+  const [newTag, setNewTag] = useState("");
+
+  const handleAddTag = (e: React.FormEvent) => {
+    e.preventDefault();
+    const tag = newTag.trim().toLowerCase();
+    if (tag && !tags.includes(tag)) {
+      onTagsChange([...tags, tag]);
+      setNewTag("");
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    onTagsChange(tags.filter((t) => t !== tagToRemove));
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-1">
+        {tags.map((tag) => (
+          <span
+            key={tag}
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-primary/10 text-primary"
+          >
+            {tag}
+            <button
+              onClick={() => handleRemoveTag(tag)}
+              className="hover:bg-primary/20 rounded-full p-0.5"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </span>
+        ))}
+      </div>
+      <form onSubmit={handleAddTag} className="flex gap-2">
+        <Input
+          value={newTag}
+          onChange={(e) => setNewTag(e.target.value)}
+          placeholder="Add tag..."
+          className="h-8 text-sm"
+        />
+        <Button type="submit" size="sm" variant="outline" disabled={!newTag.trim()}>
+          Add
+        </Button>
+      </form>
+    </div>
+  );
+}
 
 export default function DictionaryPage() {
+  const { toast } = useToast();
   const [entries, setEntries] = useState<DictionaryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<"alphabetical" | "recent">("alphabetical");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<DictionaryEntry | null>(null);
   const [adding, setAdding] = useState(false);
 
-  const [formData, setFormData] = useState({
-    originalWord: "",
-    originalLanguage: "en" as "en" | "ru",
-  });
+  const [word, setWord] = useState("");
 
   useEffect(() => {
     loadEntries();
-  }, []);
+  }, [sortBy]);
 
   async function loadEntries() {
     try {
-      const data = await dictionaryApi.getAll();
+      const data = await dictionaryApi.getAll({ sort: sortBy });
       setEntries(data);
     } catch (error) {
       console.error("Failed to load dictionary:", error);
@@ -60,14 +98,19 @@ export default function DictionaryPage() {
     setAdding(true);
     try {
       await dictionaryApi.create({
-        ...formData,
+        word,
         autoTranslate: true,
       });
       setDialogOpen(false);
-      setFormData({ originalWord: "", originalLanguage: "en" });
+      setWord("");
       loadEntries();
     } catch (error) {
-      console.error("Failed to add entry:", error);
+      const message = error instanceof Error ? error.message : "Failed to add word";
+      toast({
+        variant: "destructive",
+        title: "Error adding word",
+        description: message,
+      });
     } finally {
       setAdding(false);
     }
@@ -84,14 +127,27 @@ export default function DictionaryPage() {
     }
   }
 
-  const filteredEntries = entries.filter(
-    (e) =>
-      e.originalWord.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      e.turkishTranslation.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  async function handleUpdateTags(id: string, tags: string[]) {
+    try {
+      const updated = await dictionaryApi.update(id, { tags });
+      setSelectedEntry(updated);
+      loadEntries();
+    } catch (error) {
+      console.error("Failed to update tags:", error);
+    }
+  }
 
-  const words = filteredEntries.filter((e) => !e.isPhrase);
-  const phrases = filteredEntries.filter((e) => e.isPhrase);
+  // Get all unique tags
+  const allTags = Array.from(new Set(entries.flatMap((e) => e.tags || [])));
+
+  const filteredEntries = entries.filter((e) => {
+    const matchesSearch =
+      e.englishWord.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      e.russianWord.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      e.turkishWord.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTag = !selectedTag || (e.tags || []).includes(selectedTag);
+    return matchesSearch && matchesTag;
+  });
 
   if (loading) {
     return <div className="text-center py-12">Loading...</div>;
@@ -103,7 +159,7 @@ export default function DictionaryPage() {
         <div>
           <h1 className="text-3xl font-bold">Dictionary</h1>
           <p className="text-muted-foreground mt-1">
-            Your personal vocabulary with morphology breakdowns
+            Your vocabulary with English, Turkish, and Russian translations
           </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -121,33 +177,15 @@ export default function DictionaryPage() {
               <div>
                 <label className="text-sm font-medium">Word or Phrase</label>
                 <Input
-                  value={formData.originalWord}
-                  onChange={(e) =>
-                    setFormData({ ...formData, originalWord: e.target.value })
-                  }
-                  placeholder="Enter a word or phrase"
+                  value={word}
+                  onChange={(e) => setWord(e.target.value)}
+                  placeholder="Enter in English, Russian, or Turkish"
                   required
+                  autoFocus
                 />
               </div>
-              <div>
-                <label className="text-sm font-medium">Source Language</label>
-                <Select
-                  value={formData.originalLanguage}
-                  onValueChange={(v) =>
-                    setFormData({ ...formData, originalLanguage: v as "en" | "ru" })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="ru">Russian</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
               <p className="text-sm text-muted-foreground">
-                AI will auto-translate and provide morphology breakdown
+                Language is auto-detected. Turkish words typed in Latin alphabet will be corrected automatically.
               </p>
               <div className="flex justify-end gap-2">
                 <Button
@@ -157,7 +195,7 @@ export default function DictionaryPage() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={adding}>
+                <Button type="submit" disabled={adding || !word.trim()}>
                   {adding ? "Translating..." : "Add"}
                 </Button>
               </div>
@@ -166,16 +204,71 @@ export default function DictionaryPage() {
         </Dialog>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search dictionary..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
-        />
+      {/* Search and Sort */}
+      <div className="flex gap-4 mb-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search in any language..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <div className="flex rounded-md border">
+          <button
+            onClick={() => setSortBy("alphabetical")}
+            className={`px-3 py-2 flex items-center gap-1 text-sm ${
+              sortBy === "alphabetical"
+                ? "bg-primary text-primary-foreground"
+                : "hover:bg-muted"
+            } rounded-l-md`}
+          >
+            <ArrowDownAZ className="h-4 w-4" />
+            A-Z
+          </button>
+          <button
+            onClick={() => setSortBy("recent")}
+            className={`px-3 py-2 flex items-center gap-1 text-sm ${
+              sortBy === "recent"
+                ? "bg-primary text-primary-foreground"
+                : "hover:bg-muted"
+            } rounded-r-md`}
+          >
+            <Clock className="h-4 w-4" />
+            Recent
+          </button>
+        </div>
       </div>
+
+      {/* Tag Filter */}
+      {allTags.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-6">
+          <button
+            onClick={() => setSelectedTag(null)}
+            className={`text-xs px-3 py-1 rounded-full transition-colors ${
+              !selectedTag
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted hover:bg-muted/80"
+            }`}
+          >
+            All
+          </button>
+          {allTags.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+              className={`text-xs px-3 py-1 rounded-full transition-colors ${
+                selectedTag === tag
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted hover:bg-muted/80"
+              }`}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      )}
 
       {entries.length === 0 ? (
         <Card className="text-center py-12">
@@ -190,23 +283,60 @@ export default function DictionaryPage() {
           </CardContent>
         </Card>
       ) : (
-        <Tabs defaultValue="all">
-          <TabsList>
-            <TabsTrigger value="all">All ({filteredEntries.length})</TabsTrigger>
-            <TabsTrigger value="words">Words ({words.length})</TabsTrigger>
-            <TabsTrigger value="phrases">Phrases ({phrases.length})</TabsTrigger>
-          </TabsList>
+        <>
+          {/* Entries as Cards */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredEntries.map((entry) => (
+              <Card
+                key={entry.id}
+                className="cursor-pointer hover:border-primary transition-colors"
+                onClick={() => setSelectedEntry(entry)}
+              >
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-lg text-primary">
+                        {entry.turkishWord}
+                      </CardTitle>
+                      {entry.pronunciation && (
+                        <p className="text-sm text-muted-foreground italic">/{entry.pronunciation}/</p>
+                      )}
+                    </div>
+                    {entry.partOfSpeech && (
+                      <span className="text-sm font-medium text-muted-foreground">
+                        {entry.partOfSpeech}
+                      </span>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-1 text-sm">
+                  <p><span className="text-muted-foreground">EN:</span> {entry.englishWord}</p>
+                  <p><span className="text-muted-foreground">RU:</span> {entry.russianWord}</p>
+                  {entry.tags?.length > 0 && (
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      {entry.tags.slice(0, 3).map((tag) => (
+                        <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
+                          {tag}
+                        </span>
+                      ))}
+                      {entry.tags.length > 3 && (
+                        <span className="text-[10px] px-1.5 py-0.5 text-muted-foreground">
+                          +{entry.tags.length - 3}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
-          <TabsContent value="all" className="mt-4">
-            <EntryGrid entries={filteredEntries} onSelect={setSelectedEntry} />
-          </TabsContent>
-          <TabsContent value="words" className="mt-4">
-            <EntryGrid entries={words} onSelect={setSelectedEntry} />
-          </TabsContent>
-          <TabsContent value="phrases" className="mt-4">
-            <EntryGrid entries={phrases} onSelect={setSelectedEntry} />
-          </TabsContent>
-        </Tabs>
+          {filteredEntries.length === 0 && (
+            <p className="text-center text-muted-foreground py-8">
+              No entries found matching &quot;{searchQuery}&quot;
+            </p>
+          )}
+        </>
       )}
 
       {/* Entry Detail Dialog */}
@@ -218,12 +348,13 @@ export default function DictionaryPage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <DialogTitle className="text-2xl">
-                      {selectedEntry.turkishTranslation}
+                      {selectedEntry.turkishWord}
                     </DialogTitle>
-                    <p className="text-muted-foreground">
-                      {selectedEntry.originalWord} (
-                      {selectedEntry.originalLanguage === "en" ? "English" : "Russian"})
-                    </p>
+                    {selectedEntry.partOfSpeech && (
+                      <span className="text-sm text-muted-foreground italic">
+                        {selectedEntry.partOfSpeech}
+                      </span>
+                    )}
                   </div>
                   <Button
                     variant="ghost"
@@ -234,6 +365,12 @@ export default function DictionaryPage() {
                   </Button>
                 </div>
               </DialogHeader>
+
+              {/* Translations */}
+              <div className="space-y-2 py-4 border-b">
+                <p><span className="text-muted-foreground font-medium">English:</span> {selectedEntry.englishWord}</p>
+                <p><span className="text-muted-foreground font-medium">Russian:</span> {selectedEntry.russianWord}</p>
+              </div>
 
               {selectedEntry.pronunciation && (
                 <div className="text-lg text-muted-foreground italic">
@@ -273,63 +410,35 @@ export default function DictionaryPage() {
                   <h4 className="font-semibold mb-2">Examples</h4>
                   <div className="space-y-2">
                     {selectedEntry.examples.map((ex, i) => (
-                      <div key={i} className="bg-muted/50 p-3 rounded-md">
-                        <div className="font-medium text-primary">{ex.turkish}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {ex.english}
-                        </div>
+                      <div key={i} className="bg-muted/50 p-3 rounded-md space-y-1">
+                        <TurkishText
+                          text={ex.turkish}
+                          pronunciation={ex.pronunciation}
+                          onWordAdded={loadEntries}
+                        />
+                        <div className="text-sm text-muted-foreground">{ex.english}</div>
+                        <div className="text-sm text-muted-foreground">{ex.russian}</div>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
+
+              {/* Tags */}
+              <div>
+                <h4 className="font-semibold mb-2 flex items-center gap-2">
+                  <Tag className="h-4 w-4" />
+                  Tags
+                </h4>
+                <TagEditor
+                  tags={selectedEntry.tags || []}
+                  onTagsChange={(tags) => handleUpdateTags(selectedEntry.id, tags)}
+                />
+              </div>
             </>
           )}
         </DialogContent>
       </Dialog>
-    </div>
-  );
-}
-
-function EntryGrid({
-  entries,
-  onSelect,
-}: {
-  entries: DictionaryEntry[];
-  onSelect: (entry: DictionaryEntry) => void;
-}) {
-  if (entries.length === 0) {
-    return (
-      <p className="text-center text-muted-foreground py-8">No entries found</p>
-    );
-  }
-
-  return (
-    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {entries.map((entry) => (
-        <Card
-          key={entry.id}
-          className="cursor-pointer hover:border-primary transition-colors"
-          onClick={() => onSelect(entry)}
-        >
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">{entry.turkishTranslation}</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              {entry.originalWord}
-              <span className="ml-2 text-xs uppercase">
-                {entry.originalLanguage}
-              </span>
-            </p>
-          </CardHeader>
-          {entry.pronunciation && (
-            <CardContent className="pt-0">
-              <p className="text-sm italic text-muted-foreground">
-                /{entry.pronunciation}/
-              </p>
-            </CardContent>
-          )}
-        </Card>
-      ))}
     </div>
   );
 }
