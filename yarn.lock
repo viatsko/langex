@@ -2946,6 +2946,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jotai@npm:^2.16.2":
+  version: 2.16.2
+  resolution: "jotai@npm:2.16.2"
+  peerDependencies:
+    "@babel/core": ">=7.0.0"
+    "@babel/template": ">=7.0.0"
+    "@types/react": ">=17.0.0"
+    react: ">=17.0.0"
+  peerDependenciesMeta:
+    "@babel/core":
+      optional: true
+    "@babel/template":
+      optional: true
+    "@types/react":
+      optional: true
+    react:
+      optional: true
+  checksum: 10c0/d3458edd5047c7399002399e9e000cdc1511d10b012b42a8fae2e76e0ef74de759078dbb4951fc01a13fdb75224f823a68a8603242d0fc5f38f4f273e96888eb
+  languageName: node
+  linkType: hard
+
 "langex-backend@workspace:backend":
   version: 0.0.0-use.local
   resolution: "langex-backend@workspace:backend"
@@ -2986,6 +3007,7 @@ __metadata:
     class-variance-authority: "npm:^0.7.1"
     clsx: "npm:^2.1.1"
     dotenv-cli: "npm:^8.0.0"
+    jotai: "npm:^2.16.2"
     lucide-react: "npm:^0.469.0"
     next: "npm:^15.1.4"
     postcss: "npm:^8.4.49"
