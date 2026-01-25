@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 async function fetchAPI<T>(
   endpoint: string,
@@ -44,15 +44,19 @@ export const grammarApi = {
 
 // Dictionary API
 export const dictionaryApi = {
-  getAll: (params?: { search?: string; language?: string }) => {
+  getAll: (params?: { search?: string; sort?: "alphabetical" | "recent" }) => {
     const searchParams = new URLSearchParams();
     if (params?.search) searchParams.set("search", params.search);
-    if (params?.language) searchParams.set("language", params.language);
+    if (params?.sort === "recent") searchParams.set("sort", "recent");
     const query = searchParams.toString();
     return fetchAPI<DictionaryEntry[]>(`/api/dictionary${query ? `?${query}` : ""}`);
   },
   getById: (id: string) => fetchAPI<DictionaryEntry>(`/api/dictionary/${id}`),
-  create: (data: { originalWord: string; originalLanguage: "en" | "ru"; autoTranslate?: boolean }) =>
+  lookup: (word: string) =>
+    fetchAPI<{ found: boolean; entry?: DictionaryEntry }>(
+      `/api/dictionary/lookup/${encodeURIComponent(word)}`
+    ),
+  create: (data: { word: string; autoTranslate?: boolean }) =>
     fetchAPI<DictionaryEntry>("/api/dictionary", {
       method: "POST",
       body: JSON.stringify(data),
@@ -97,13 +101,15 @@ export interface MorphologyBreakdown {
 
 export interface DictionaryEntry {
   id: string;
-  originalWord: string;
-  originalLanguage: "en" | "ru";
-  turkishTranslation: string;
+  englishWord: string;
+  russianWord: string;
+  turkishWord: string;
+  partOfSpeech?: string;
   pronunciation?: string;
   morphologyBreakdown?: MorphologyBreakdown;
   isPhrase: boolean;
-  examples: { turkish: string; english: string }[];
+  examples: { turkish: string; pronunciation?: string; english: string; russian: string }[];
+  tags: string[];
   notes?: string;
   createdAt: string;
   updatedAt: string;
@@ -114,11 +120,11 @@ export interface AiResponse {
   turkish?: string;
   shouldSaveToDictionary: boolean;
   dictionaryEntry?: {
-    originalWord: string;
-    originalLanguage: string;
+    english: string;
+    russian: string;
     turkish: string;
     pronunciation: string;
     morphologyBreakdown: MorphologyBreakdown;
-    examples: { turkish: string; english: string }[];
+    examples: { turkish: string; english: string; russian: string }[];
   };
 }
