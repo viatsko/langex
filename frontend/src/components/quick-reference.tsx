@@ -16,6 +16,15 @@ interface PhraseGroup {
 
 const phraseGroups: PhraseGroup[] = [
   {
+    title: "Vowels (Ünlüler)",
+    items: [
+      { turkish: "a, ı, o, u", pronunciation: "back vowels", english: "Back (kalın)", russian: "Задние (твёрдые)" },
+      { turkish: "e, i, ö, ü", pronunciation: "front vowels", english: "Front (ince)", russian: "Передние (мягкие)" },
+      { turkish: "a, e, ı, i", pronunciation: "unrounded", english: "Unrounded (düz)", russian: "Неогублённые" },
+      { turkish: "o, ö, u, ü", pronunciation: "rounded", english: "Rounded (yuvarlak)", russian: "Огублённые" },
+    ],
+  },
+  {
     title: "Greetings",
     items: [
       { turkish: "Merhaba", pronunciation: "mer-HA-ba", english: "Hello", russian: "Привет" },
