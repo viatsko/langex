@@ -68,6 +68,11 @@ export const dictionaryApi = {
     }),
   delete: (id: string) =>
     fetchAPI<void>(`/api/dictionary/${id}`, { method: "DELETE" }),
+  suggestFix: (id: string, suggestion: string) =>
+    fetchAPI<DictionaryEntry>(`/api/dictionary/${id}/suggest-fix`, {
+      method: "POST",
+      body: JSON.stringify({ suggestion }),
+    }),
 };
 
 // AI API
