@@ -97,7 +97,7 @@ dictionaryRouter.get("/:id", async (req, res) => {
 // Create entry with auto-translation
 dictionaryRouter.post("/", async (req, res) => {
   try {
-    const { word, autoTranslate } = req.body;
+    const { word, autoTranslate, tags: userTags } = req.body;
 
     if (autoTranslate && word) {
       // Use AI to translate and get morphology (auto-detects language)
@@ -115,6 +115,10 @@ dictionaryRouter.post("/", async (req, res) => {
         return res.status(200).json(existing);
       }
 
+      // Merge user-provided tags with AI-suggested tags (deduplicated)
+      const aiTags = result.tags || [];
+      const mergedTags = [...new Set([...(userTags || []), ...aiTags])];
+
       const entry = await prisma.dictionaryEntry.create({
         data: {
           englishWord: result.english,
@@ -125,7 +129,7 @@ dictionaryRouter.post("/", async (req, res) => {
           morphologyBreakdown: result.morphologyBreakdown,
           isPhrase: word.includes(" "),
           examples: result.examples,
-          tags: result.tags || [],
+          tags: mergedTags,
         },
       });
       return res.status(201).json(entry);
