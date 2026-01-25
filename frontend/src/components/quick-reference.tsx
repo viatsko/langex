@@ -1,6 +1,17 @@
 "use client";
 
+import { ChevronDown, ChevronRight } from "lucide-react";
+import { useAtom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+
+// Persist collapsed state in localStorage
+const quickReferenceOpenAtom = atomWithStorage("quickReferenceOpen", true);
 
 interface PhraseItem {
   turkish: string;
@@ -139,18 +150,33 @@ function PhraseColumn({ group }: { group: PhraseGroup }) {
 }
 
 export function QuickReference() {
+  const [isOpen, setIsOpen] = useAtom(quickReferenceOpenAtom);
+
   return (
     <Card className="mb-6">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Quick Reference</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {phraseGroups.map((group) => (
-            <PhraseColumn key={group.title} group={group} />
-          ))}
-        </div>
-      </CardContent>
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="pb-3 cursor-pointer hover:bg-muted/50 transition-colors">
+            <div className="flex items-center gap-2">
+              {isOpen ? (
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              )}
+              <CardTitle className="text-lg">Quick Reference</CardTitle>
+            </div>
+          </CardHeader>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {phraseGroups.map((group) => (
+                <PhraseColumn key={group.title} group={group} />
+              ))}
+            </div>
+          </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
     </Card>
   );
 }
