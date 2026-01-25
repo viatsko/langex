@@ -24,13 +24,15 @@ model GrammarCard {
 
 model DictionaryEntry {
   id                  String   @id @default(cuid())
-  originalWord        String   @map("original_word")
-  originalLanguage    String   @map("original_language") // "en" or "ru"
-  turkishTranslation  String   @map("turkish_translation")
+  englishWord         String   @map("english_word")
+  russianWord         String   @map("russian_word")
+  turkishWord         String   @map("turkish_word")
+  partOfSpeech        String?  @map("part_of_speech")
   pronunciation       String?
   morphologyBreakdown Json?    @map("morphology_breakdown")
   isPhrase            Boolean  @default(false) @map("is_phrase")
   examples            Json     @default("[]")
+  tags                String[] @default([])
   notes               String?  @db.Text
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
