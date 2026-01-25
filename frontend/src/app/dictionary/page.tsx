@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useAtom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
 import { Plus, Search, Trash2, Tag, X, ArrowDownAZ, Clock, MessageSquarePlus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +30,9 @@ import { TurkishText } from "@/components/turkish-text";
 import { useToast } from "@/components/ui/use-toast";
 import { ConversationPanel } from "@/components/conversation-panel";
 import { QuickReference } from "@/components/quick-reference";
+
+// Persist sort preference in localStorage
+const dictionarySortAtom = atomWithStorage<"alphabetical" | "recent">("dictionarySort", "alphabetical");
 
 function TagEditor({ tags, onTagsChange }: { tags: string[]; onTagsChange: (tags: string[]) => void }) {
   const [newTag, setNewTag] = useState("");
@@ -179,7 +184,7 @@ export default function DictionaryPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<"alphabetical" | "recent">("alphabetical");
+  const [sortBy, setSortBy] = useAtom(dictionarySortAtom);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<DictionaryEntry | null>(null);
   const [adding, setAdding] = useState(false);
