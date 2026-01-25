@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Plus, Search, Trash2, Tag, X, ArrowDownAZ, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { dictionaryApi, type DictionaryEntry } from "@/lib/api";
 import { TurkishText } from "@/components/turkish-text";
 import { useToast } from "@/components/ui/use-toast";
+import { ConversationPanel } from "@/components/conversation-panel";
+import { QuickReference } from "@/components/quick-reference";
 
 function TagEditor({ tags, onTagsChange }: { tags: string[]; onTagsChange: (tags: string[]) => void }) {
   const [newTag, setNewTag] = useState("");
@@ -78,11 +80,7 @@ export default function DictionaryPage() {
 
   const [word, setWord] = useState("");
 
-  useEffect(() => {
-    loadEntries();
-  }, [sortBy]);
-
-  async function loadEntries() {
+  const loadEntries = useCallback(async () => {
     try {
       const data = await dictionaryApi.getAll({ sort: sortBy });
       setEntries(data);
@@ -91,7 +89,11 @@ export default function DictionaryPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [sortBy]);
+
+  useEffect(() => {
+    loadEntries();
+  }, [loadEntries]);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -100,6 +102,7 @@ export default function DictionaryPage() {
       await dictionaryApi.create({
         word,
         autoTranslate: true,
+        tags: selectedTag ? [selectedTag] : undefined,
       });
       setDialogOpen(false);
       setWord("");
@@ -154,190 +157,210 @@ export default function DictionaryPage() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Dictionary</h1>
-          <p className="text-muted-foreground mt-1">
-            Your vocabulary with English, Turkish, and Russian translations
-          </p>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-full">
+      {/* Dictionary Section - 2/3 width */}
+      <div className="lg:col-span-2 flex flex-col min-h-0">
+        <div className="flex items-center justify-between mb-4 shrink-0">
+          <div>
+            <h1 className="text-3xl font-bold">Dictionary</h1>
+            <p className="text-muted-foreground mt-1">
+              Your vocabulary with English, Turkish, and Russian translations
+            </p>
+          </div>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Word
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add to Dictionary</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleAdd} className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Word or Phrase</label>
+                  <Input
+                    value={word}
+                    onChange={(e) => setWord(e.target.value)}
+                    placeholder="Enter in English, Russian, or Turkish"
+                    required
+                    autoFocus
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Language is auto-detected. Turkish words typed in Latin alphabet will be corrected automatically.
+                </p>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={adding || !word.trim()}>
+                    {adding ? "Translating..." : "Add"}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Word
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add to Dictionary</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleAdd} className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Word or Phrase</label>
-                <Input
-                  value={word}
-                  onChange={(e) => setWord(e.target.value)}
-                  placeholder="Enter in English, Russian, or Turkish"
-                  required
-                  autoFocus
-                />
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Language is auto-detected. Turkish words typed in Latin alphabet will be corrected automatically.
-              </p>
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={adding || !word.trim()}>
-                  {adding ? "Translating..." : "Add"}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
 
-      {/* Search and Sort */}
-      <div className="flex gap-4 mb-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search in any language..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <div className="flex rounded-md border">
-          <button
-            onClick={() => setSortBy("alphabetical")}
-            className={`px-3 py-2 flex items-center gap-1 text-sm ${
-              sortBy === "alphabetical"
-                ? "bg-primary text-primary-foreground"
-                : "hover:bg-muted"
-            } rounded-l-md`}
-          >
-            <ArrowDownAZ className="h-4 w-4" />
-            A-Z
-          </button>
-          <button
-            onClick={() => setSortBy("recent")}
-            className={`px-3 py-2 flex items-center gap-1 text-sm ${
-              sortBy === "recent"
-                ? "bg-primary text-primary-foreground"
-                : "hover:bg-muted"
-            } rounded-r-md`}
-          >
-            <Clock className="h-4 w-4" />
-            Recent
-          </button>
-        </div>
-      </div>
-
-      {/* Tag Filter */}
-      {allTags.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-6">
-          <button
-            onClick={() => setSelectedTag(null)}
-            className={`text-xs px-3 py-1 rounded-full transition-colors ${
-              !selectedTag
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted hover:bg-muted/80"
-            }`}
-          >
-            All
-          </button>
-          {allTags.map((tag) => (
+        {/* Search and Sort */}
+        <div className="flex gap-4 mb-4 shrink-0">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search in any language..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <div className="flex rounded-md border">
             <button
-              key={tag}
-              onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+              onClick={() => setSortBy("alphabetical")}
+              className={`px-3 py-2 flex items-center gap-1 text-sm ${
+                sortBy === "alphabetical"
+                  ? "bg-primary text-primary-foreground"
+                  : "hover:bg-muted"
+              } rounded-l-md`}
+            >
+              <ArrowDownAZ className="h-4 w-4" />
+              A-Z
+            </button>
+            <button
+              onClick={() => setSortBy("recent")}
+              className={`px-3 py-2 flex items-center gap-1 text-sm ${
+                sortBy === "recent"
+                  ? "bg-primary text-primary-foreground"
+                  : "hover:bg-muted"
+              } rounded-r-md`}
+            >
+              <Clock className="h-4 w-4" />
+              Recent
+            </button>
+          </div>
+        </div>
+
+        {/* Tag Filter */}
+        {allTags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4 shrink-0">
+            <button
+              onClick={() => setSelectedTag(null)}
               className={`text-xs px-3 py-1 rounded-full transition-colors ${
-                selectedTag === tag
+                !selectedTag
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted hover:bg-muted/80"
               }`}
             >
-              {tag}
+              All
             </button>
-          ))}
-        </div>
-      )}
-
-      {entries.length === 0 ? (
-        <Card className="text-center py-12">
-          <CardContent>
-            <p className="text-muted-foreground mb-4">
-              Your dictionary is empty. Add your first word!
-            </p>
-            <Button onClick={() => setDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Word
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          {/* Entries as Cards */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredEntries.map((entry) => (
-              <Card
-                key={entry.id}
-                className="cursor-pointer hover:border-primary transition-colors"
-                onClick={() => setSelectedEntry(entry)}
+            {allTags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                className={`text-xs px-3 py-1 rounded-full transition-colors ${
+                  selectedTag === tag
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted hover:bg-muted/80"
+                }`}
               >
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg text-primary">
-                        {entry.turkishWord}
-                      </CardTitle>
-                      {entry.pronunciation && (
-                        <p className="text-sm text-muted-foreground italic">/{entry.pronunciation}/</p>
-                      )}
-                    </div>
-                    {entry.partOfSpeech && (
-                      <span className="text-sm font-medium text-muted-foreground">
-                        {entry.partOfSpeech}
-                      </span>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-1 text-sm">
-                  <p><span className="text-muted-foreground">EN:</span> {entry.englishWord}</p>
-                  <p><span className="text-muted-foreground">RU:</span> {entry.russianWord}</p>
-                  {entry.tags?.length > 0 && (
-                    <div className="flex flex-wrap gap-1 pt-1">
-                      {entry.tags.slice(0, 3).map((tag) => (
-                        <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
-                          {tag}
-                        </span>
-                      ))}
-                      {entry.tags.length > 3 && (
-                        <span className="text-[10px] px-1.5 py-0.5 text-muted-foreground">
-                          +{entry.tags.length - 3}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                {tag}
+              </button>
             ))}
           </div>
+        )}
 
-          {filteredEntries.length === 0 && (
-            <p className="text-center text-muted-foreground py-8">
-              No entries found matching &quot;{searchQuery}&quot;
-            </p>
+        {/* Scrollable cards area */}
+        <div className="overflow-y-auto min-h-0 flex-1 pr-2">
+          <QuickReference />
+          {entries.length === 0 ? (
+            <Card className="text-center py-12">
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Your dictionary is empty. Add your first word!
+                </p>
+                <Button onClick={() => setDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Word
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              {/* Entries as Cards */}
+              <div className="grid md:grid-cols-2 min-[1800px]:grid-cols-3 gap-4">
+              {filteredEntries.map((entry) => (
+                <Card
+                  key={entry.id}
+                  className="cursor-pointer hover:border-primary transition-colors"
+                  onClick={() => setSelectedEntry(entry)}
+                >
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="text-lg text-primary">
+                          {entry.turkishWord}
+                        </CardTitle>
+                        {entry.pronunciation && (
+                          <p className="text-sm text-muted-foreground italic">/{entry.pronunciation}/</p>
+                        )}
+                      </div>
+                      {entry.partOfSpeech && (
+                        <span className="text-sm font-medium text-muted-foreground">
+                          {entry.partOfSpeech}
+                        </span>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-1 text-sm">
+                    <p><span className="text-muted-foreground">EN:</span> {entry.englishWord}</p>
+                    <p><span className="text-muted-foreground">RU:</span> {entry.russianWord}</p>
+                    {entry.tags?.length > 0 && (
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {entry.tags.slice(0, 3).map((tag) => (
+                          <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
+                            {tag}
+                          </span>
+                        ))}
+                        {entry.tags.length > 3 && (
+                          <span className="text-[10px] px-1.5 py-0.5 text-muted-foreground">
+                            +{entry.tags.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+              {filteredEntries.length === 0 && (
+                <p className="text-center text-muted-foreground py-8">
+                  No entries found matching &quot;{searchQuery}&quot;
+                </p>
+              )}
+            </>
           )}
-        </>
-      )}
+        </div>
+      </div>
+
+      {/* Conversations Section - 1/3 width */}
+      <div className="lg:col-span-1 flex flex-col min-h-0">
+        <div className="mb-4 shrink-0">
+          <h2 className="text-2xl font-bold">Conversations</h2>
+          <p className="text-muted-foreground mt-1">
+            Practice with sample dialogues
+          </p>
+        </div>
+        <div className="overflow-y-auto min-h-0 flex-1 pr-2">
+          <ConversationPanel onWordAdded={loadEntries} />
+        </div>
+      </div>
 
       {/* Entry Detail Dialog */}
       <Dialog open={!!selectedEntry} onOpenChange={() => setSelectedEntry(null)}>
