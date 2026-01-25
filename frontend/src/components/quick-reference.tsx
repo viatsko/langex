@@ -25,6 +25,15 @@ const phraseGroups: PhraseGroup[] = [
     ],
   },
   {
+    title: "Question (mi?)",
+    items: [
+      { turkish: "mı?", pronunciation: "mi", english: "after a, ı", russian: "после a, ı" },
+      { turkish: "mi?", pronunciation: "mi", english: "after e, i", russian: "после e, i" },
+      { turkish: "mu?", pronunciation: "mu", english: "after o, u", russian: "после o, u" },
+      { turkish: "mü?", pronunciation: "mü", english: "after ö, ü", russian: "после ö, ü" },
+    ],
+  },
+  {
     title: "Greetings",
     items: [
       { turkish: "Merhaba", pronunciation: "mer-HA-ba", english: "Hello", russian: "Привет" },
