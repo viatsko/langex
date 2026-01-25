@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Plus, Search, Trash2, Tag, X, ArrowDownAZ, Clock } from "lucide-react";
+import { Plus, Search, Trash2, Tag, X, ArrowDownAZ, Clock, MessageSquarePlus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -12,6 +12,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { dictionaryApi, type DictionaryEntry } from "@/lib/api";
 import { TurkishText } from "@/components/turkish-text";
 import { useToast } from "@/components/ui/use-toast";
@@ -64,6 +75,101 @@ function TagEditor({ tags, onTagsChange }: { tags: string[]; onTagsChange: (tags
         </Button>
       </form>
     </div>
+  );
+}
+
+function SuggestFixButton({
+  entry,
+  onFixed
+}: {
+  entry: DictionaryEntry;
+  onFixed: (updated: DictionaryEntry) => void;
+}) {
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [suggestion, setSuggestion] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!suggestion.trim()) return;
+
+    setLoading(true);
+    try {
+      const updated = await dictionaryApi.suggestFix(entry.id, suggestion.trim());
+      onFixed(updated);
+      setOpen(false);
+      setSuggestion("");
+      toast({
+        title: "Translation updated",
+        description: "The translation has been corrected based on your suggestion.",
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to apply suggestion";
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MessageSquarePlus className="h-4 w-4 text-muted-foreground" />
+              </Button>
+            </PopoverTrigger>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Suggest a fix for this translation</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <PopoverContent className="w-80">
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <h4 className="font-medium text-sm mb-1">Suggest a fix</h4>
+            <p className="text-xs text-muted-foreground mb-2">
+              Describe how the translation should be corrected
+            </p>
+            <Input
+              value={suggestion}
+              onChange={(e) => setSuggestion(e.target.value)}
+              placeholder='e.g., "This means X, not Y" or "Russian should be..."'
+              disabled={loading}
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setOpen(false)}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" size="sm" disabled={loading || !suggestion.trim()}>
+              {loading ? (
+                <>
+                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                  Fixing...
+                </>
+              ) : (
+                "Apply Fix"
+              )}
+            </Button>
+          </div>
+        </form>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -391,8 +497,19 @@ export default function DictionaryPage() {
 
               {/* Translations */}
               <div className="space-y-2 py-4 border-b">
-                <p><span className="text-muted-foreground font-medium">English:</span> {selectedEntry.englishWord}</p>
-                <p><span className="text-muted-foreground font-medium">Russian:</span> {selectedEntry.russianWord}</p>
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2">
+                    <p><span className="text-muted-foreground font-medium">English:</span> {selectedEntry.englishWord}</p>
+                    <p><span className="text-muted-foreground font-medium">Russian:</span> {selectedEntry.russianWord}</p>
+                  </div>
+                  <SuggestFixButton
+                    entry={selectedEntry}
+                    onFixed={(updated) => {
+                      setSelectedEntry(updated);
+                      loadEntries();
+                    }}
+                  />
+                </div>
               </div>
 
               {selectedEntry.pronunciation && (
