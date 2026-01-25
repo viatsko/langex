@@ -4,19 +4,34 @@ A personal Turkish language learning platform with grammar cards, dictionary wit
 
 ## Quick Start
 
-1. **Set up environment variables**
+1. **Install dependencies**
+   ```bash
+   yarn install
+   ```
+
+2. **Set up environment variables**
    ```bash
    cp .env.example .env
    # Edit .env and add your API keys
    ```
 
-2. **Start the application**
+3. **Start the database**
    ```bash
-   docker-compose up --build
+   yarn db:start
    ```
 
-3. **Access the app**
-   - Frontend: http://localhost:5000
+4. **Run database migrations**
+   ```bash
+   yarn db:migrate
+   ```
+
+5. **Start development servers**
+   ```bash
+   yarn dev
+   ```
+
+6. **Access the app**
+   - Frontend: http://localhost:4001
    - Backend API: http://localhost:4000
 
 ## Features
@@ -39,22 +54,32 @@ A personal Turkish language learning platform with grammar cards, dictionary wit
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14, shadcn/ui, Tailwind CSS
+- **Frontend**: Next.js 15, shadcn/ui, Tailwind CSS
 - **Backend**: Express, Prisma ORM
-- **Database**: PostgreSQL
+- **Database**: PostgreSQL (Docker)
 - **AI**: Anthropic Claude
+- **Monorepo**: Turborepo + Yarn Workspaces
 
-## Development
+## Commands
 
 ```bash
-# Backend only
-cd backend && npm install && npm run dev
+# Start development (frontend + backend)
+yarn dev
 
-# Frontend only
-cd frontend && npm install && npm run dev
+# Start only database
+yarn db:start
 
-# Database migrations
-cd backend && npm run db:migrate
+# Stop database
+yarn db:stop
+
+# Run database migrations
+yarn db:migrate
+
+# Open Prisma Studio (database GUI)
+yarn db:studio
+
+# Build for production
+yarn build
 ```
 
 ## Data Persistence
