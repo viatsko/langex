@@ -22,20 +22,19 @@ aiRouter.post("/ask", async (req, res) => {
       // Check if entry already exists
       const existing = await prisma.dictionaryEntry.findFirst({
         where: {
-          originalWord: entry.originalWord,
-          originalLanguage: entry.originalLanguage,
+          turkishWord: entry.turkish,
         },
       });
 
       if (!existing) {
         await prisma.dictionaryEntry.create({
           data: {
-            originalWord: entry.originalWord,
-            originalLanguage: entry.originalLanguage,
-            turkishTranslation: entry.turkish,
+            englishWord: entry.english,
+            russianWord: entry.russian,
+            turkishWord: entry.turkish,
             pronunciation: entry.pronunciation,
             morphologyBreakdown: entry.morphologyBreakdown,
-            isPhrase: entry.originalWord.includes(" "),
+            isPhrase: entry.english.includes(" ") || entry.russian.includes(" "),
             examples: entry.examples,
           },
         });
