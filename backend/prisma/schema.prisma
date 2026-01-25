@@ -48,3 +48,17 @@ model AiConversation {
 
   @@map("ai_conversations")
 }
+
+model Conversation {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  category    String   // e.g., "greetings", "restaurant", "shopping"
+  difficulty  String   @default("beginner") // beginner, intermediate, advanced
+  lines       Json     @default("[]") // Array of ConversationLine
+  order       Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("conversations")
+}
