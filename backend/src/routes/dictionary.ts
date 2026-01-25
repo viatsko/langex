@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../services/db.js";
 import { z } from "zod";
-import { translateWithAI } from "../services/anthropic.js";
+import { translateWithAI, translateWithSuggestion } from "../services/anthropic.js";
 
 export const dictionaryRouter = Router();
 
@@ -193,6 +193,52 @@ dictionaryRouter.post("/:id/refresh", async (req, res) => {
   } catch (error) {
     console.error("Error refreshing entry:", error);
     res.status(500).json({ error: "Failed to refresh entry" });
+  }
+});
+
+// Suggest fix for translation
+dictionaryRouter.post("/:id/suggest-fix", async (req, res) => {
+  try {
+    const { suggestion } = req.body;
+    if (!suggestion || typeof suggestion !== "string") {
+      return res.status(400).json({ error: "Suggestion is required" });
+    }
+
+    const entry = await prisma.dictionaryEntry.findUnique({
+      where: { id: req.params.id },
+    });
+    if (!entry) {
+      return res.status(404).json({ error: "Entry not found" });
+    }
+
+    // Re-translate with user's suggestion
+    const result = await translateWithSuggestion(
+      entry.turkishWord,
+      suggestion,
+      {
+        english: entry.englishWord,
+        russian: entry.russianWord,
+        turkish: entry.turkishWord,
+      }
+    );
+
+    const updated = await prisma.dictionaryEntry.update({
+      where: { id: req.params.id },
+      data: {
+        englishWord: result.english,
+        russianWord: result.russian,
+        turkishWord: result.turkish,
+        partOfSpeech: result.partOfSpeech,
+        pronunciation: result.pronunciation,
+        morphologyBreakdown: result.morphologyBreakdown,
+        examples: result.examples,
+        tags: result.tags || [],
+      },
+    });
+    res.json(updated);
+  } catch (error) {
+    console.error("Error applying suggestion:", error);
+    res.status(500).json({ error: "Failed to apply suggestion" });
   }
 });
 
