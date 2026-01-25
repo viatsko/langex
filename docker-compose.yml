@@ -24,12 +24,13 @@ services:
     container_name: langex-backend
     restart: unless-stopped
     ports:
-      - "3001:3001"
+      - "4000:4000"
     environment:
       DATABASE_URL: postgresql://langex:langex_dev_password@db:5432/langex
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       GOOGLE_TRANSLATE_API_KEY: ${GOOGLE_TRANSLATE_API_KEY}
       NODE_ENV: development
+      PORT: "4000"
     depends_on:
       db:
         condition: service_healthy
@@ -46,7 +47,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NEXT_PUBLIC_API_URL: http://localhost:4000
     depends_on:
       - backend
     volumes:
