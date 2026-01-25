@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model GrammarCard {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String
+  content     String   @db.Text
+  examples    Json     @default("[]")
+  category    String
+  order       Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("grammar_cards")
+}
+
+model DictionaryEntry {
+  id                  String   @id @default(cuid())
+  originalWord        String   @map("original_word")
+  originalLanguage    String   @map("original_language") // "en" or "ru"
+  turkishTranslation  String   @map("turkish_translation")
+  pronunciation       String?
+  morphologyBreakdown Json?    @map("morphology_breakdown")
+  isPhrase            Boolean  @default(false) @map("is_phrase")
+  examples            Json     @default("[]")
+  notes               String?  @db.Text
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@map("dictionary_entries")
+}
+
+model AiConversation {
+  id        String   @id @default(cuid())
+  messages  Json     @default("[]")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("ai_conversations")
+}
