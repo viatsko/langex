@@ -55,6 +55,16 @@ const phraseGroups: PhraseGroup[] = [
     ],
   },
   {
+    title: "Time",
+    items: [
+      { turkish: "Şimdi", pronunciation: "shim-DI", english: "Now", russian: "Сейчас" },
+      { turkish: "Bugün", pronunciation: "bu-GÜN", english: "Today", russian: "Сегодня" },
+      { turkish: "Yarın", pronunciation: "ya-RIN", english: "Tomorrow", russian: "Завтра" },
+      { turkish: "Dün", pronunciation: "dün", english: "Yesterday", russian: "Вчера" },
+      { turkish: "Sonra", pronunciation: "son-RA", english: "Later / After", russian: "Потом / После" },
+    ],
+  },
+  {
     title: "Where is...?",
     items: [
       { turkish: "... nerede?", pronunciation: "... ne-RE-de?", english: "Where is ...?", russian: "Где ...?" },
