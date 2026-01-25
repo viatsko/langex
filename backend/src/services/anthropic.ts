@@ -9,7 +9,12 @@ function parseJsonResponse(text: string): unknown {
   // Remove markdown code blocks if present
   const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
   const jsonStr = jsonMatch ? jsonMatch[1].trim() : text.trim();
-  return JSON.parse(jsonStr);
+  try {
+    return JSON.parse(jsonStr);
+  } catch (error) {
+    console.error("Failed to parse JSON response:", jsonStr.substring(0, 500));
+    throw new Error(`Invalid JSON response from AI: ${(error as Error).message}`);
+  }
 }
 
 // Retry wrapper for API calls
@@ -52,7 +57,7 @@ export interface TranslationResult {
 export async function translateWithAI(text: string): Promise<TranslationResult> {
   const message = await withRetry(() => anthropic.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 512,
+    max_tokens: 1024,
     messages: [
       {
         role: "user",
@@ -108,7 +113,7 @@ export async function askTurkishQuestion(question: string): Promise<{
 }> {
   const message = await withRetry(() => anthropic.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 512,
+    max_tokens: 1024,
     messages: [
       {
         role: "user",
