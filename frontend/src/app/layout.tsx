@@ -22,7 +22,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <div className="min-h-screen flex flex-col">
           <header className="border-b bg-card">
-            <div className="container mx-auto px-4 py-4">
+            <div className="px-6 py-4">
               <nav className="flex items-center justify-between">
                 <Link href="/" className="text-2xl font-bold text-primary">
                   Langex
@@ -53,9 +53,9 @@ export default function RootLayout({
               </nav>
             </div>
           </header>
-          <main className="flex-1 container mx-auto px-4 py-8">{children}</main>
+          <main className="flex-1 px-6 py-6 overflow-hidden">{children}</main>
           <footer className="border-t bg-card py-4">
-            <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
+            <div className="px-6 text-center text-sm text-muted-foreground">
               Langex - Learn Turkish with AI
             </div>
           </footer>
