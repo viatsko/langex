@@ -69,7 +69,8 @@ const phraseGroups: PhraseGroup[] = [
     items: [
       { turkish: "Bilmiyorum", pronunciation: "bil-mi-YO-rum", english: "I don't know", russian: "Я не знаю" },
       { turkish: "Anlamıyorum", pronunciation: "an-la-mi-YO-rum", english: "I don't understand", russian: "Я не понимаю" },
-      { turkish: "Teşekkür ederim", pronunciation: "te-shek-KÜR e-de-RIM", english: "Thank you", russian: "Спасибо" },
+      { turkish: "Teşekkür ederim", pronunciation: "te-shek-KÜR e-de-RIM", english: "Thank you (formal)", russian: "Спасибо (форм.)" },
+      { turkish: "Teşekkürler", pronunciation: "te-shek-kür-LER", english: "Thanks", russian: "Спасибо" },
       { turkish: "Rica ederim", pronunciation: "ri-JA e-de-RIM", english: "You're welcome", russian: "Пожалуйста" },
       { turkish: "Affedersiniz", pronunciation: "af-fe-der-si-NIZ", english: "Excuse me", russian: "Извините" },
     ],
