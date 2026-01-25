@@ -56,7 +56,7 @@ export const dictionaryApi = {
     fetchAPI<{ found: boolean; entry?: DictionaryEntry }>(
       `/api/dictionary/lookup/${encodeURIComponent(word)}`
     ),
-  create: (data: { word: string; autoTranslate?: boolean }) =>
+  create: (data: { word: string; autoTranslate?: boolean; tags?: string[] }) =>
     fetchAPI<DictionaryEntry>("/api/dictionary", {
       method: "POST",
       body: JSON.stringify(data),
@@ -77,6 +77,27 @@ export const aiApi = {
       method: "POST",
       body: JSON.stringify({ question, saveToDictionary }),
     }),
+};
+
+// Conversations API
+export const conversationsApi = {
+  getAll: (category?: string) => {
+    const query = category ? `?category=${encodeURIComponent(category)}` : "";
+    return fetchAPI<Conversation[]>(`/api/conversations${query}`);
+  },
+  getById: (id: string) => fetchAPI<Conversation>(`/api/conversations/${id}`),
+  create: (data: Omit<Conversation, "id" | "createdAt" | "updatedAt">) =>
+    fetchAPI<Conversation>("/api/conversations", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  update: (id: string, data: Partial<Conversation>) =>
+    fetchAPI<Conversation>(`/api/conversations/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+  delete: (id: string) =>
+    fetchAPI<void>(`/api/conversations/${id}`, { method: "DELETE" }),
 };
 
 // Types
@@ -127,4 +148,24 @@ export interface AiResponse {
     morphologyBreakdown: MorphologyBreakdown;
     examples: { turkish: string; english: string; russian: string }[];
   };
+}
+
+export interface ConversationLine {
+  speaker: string;
+  turkish: string;
+  pronunciation: string;
+  english: string;
+  russian: string;
+}
+
+export interface Conversation {
+  id: string;
+  title: string;
+  description?: string;
+  category: string;
+  difficulty: "beginner" | "intermediate" | "advanced";
+  lines: ConversationLine[];
+  order: number;
+  createdAt: string;
+  updatedAt: string;
 }
