@@ -4,6 +4,7 @@ import { grammarRouter } from "./routes/grammar.js";
 import { dictionaryRouter } from "./routes/dictionary.js";
 import { aiRouter } from "./routes/ai.js";
 import { translateRouter } from "./routes/translate.js";
+import { conversationsRouter } from "./routes/conversations.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -21,6 +22,7 @@ app.use("/api/grammar", grammarRouter);
 app.use("/api/dictionary", dictionaryRouter);
 app.use("/api/ai", aiRouter);
 app.use("/api/translate", translateRouter);
+app.use("/api/conversations", conversationsRouter);
 
 app.listen(PORT, () => {
   console.log(`🚀 Langex backend running on http://localhost:${PORT}`);
