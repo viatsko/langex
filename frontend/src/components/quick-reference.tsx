@@ -10,8 +10,12 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 
-// Persist collapsed state in localStorage
-const quickReferenceOpenAtom = atomWithStorage("quickReferenceOpen", true);
+// Persist collapsed state for each category in localStorage
+const quickRefMainOpenAtom = atomWithStorage("quickRefMainOpen", true);
+const quickRefGrammarOpenAtom = atomWithStorage("quickRefGrammarOpen", true);
+const quickRefCommonOpenAtom = atomWithStorage("quickRefCommonOpen", true);
+const quickRefNumbersOpenAtom = atomWithStorage("quickRefNumbersOpen", false);
+const quickRefQuestionsOpenAtom = atomWithStorage("quickRefQuestionsOpen", false);
 
 interface PhraseItem {
   turkish: string;
@@ -25,7 +29,14 @@ interface PhraseGroup {
   items: PhraseItem[];
 }
 
-const phraseGroups: PhraseGroup[] = [
+interface Category {
+  title: string;
+  groups: PhraseGroup[];
+  atom: ReturnType<typeof atomWithStorage<boolean>>;
+}
+
+// Grammar Basics
+const grammarGroups: PhraseGroup[] = [
   {
     title: "Vowels (Ünlüler)",
     items: [
@@ -44,6 +55,10 @@ const phraseGroups: PhraseGroup[] = [
       { turkish: "mü?", pronunciation: "mü", english: "after ö, ü", russian: "после ö, ü" },
     ],
   },
+];
+
+// Common Words & Phrases
+const commonGroups: PhraseGroup[] = [
   {
     title: "Greetings",
     items: [
@@ -94,6 +109,71 @@ const phraseGroups: PhraseGroup[] = [
       { turkish: "Sonra", pronunciation: "son-RA", english: "Later / After", russian: "Потом / После" },
     ],
   },
+];
+
+// Numbers
+const numberGroups: PhraseGroup[] = [
+  {
+    title: "0-10",
+    items: [
+      { turkish: "Sıfır", pronunciation: "si-FIR", english: "0", russian: "0" },
+      { turkish: "Bir", pronunciation: "bir", english: "1", russian: "1" },
+      { turkish: "İki", pronunciation: "i-KI", english: "2", russian: "2" },
+      { turkish: "Üç", pronunciation: "üch", english: "3", russian: "3" },
+      { turkish: "Dört", pronunciation: "dört", english: "4", russian: "4" },
+      { turkish: "Beş", pronunciation: "besh", english: "5", russian: "5" },
+      { turkish: "Altı", pronunciation: "al-TI", english: "6", russian: "6" },
+      { turkish: "Yedi", pronunciation: "ye-DI", english: "7", russian: "7" },
+      { turkish: "Sekiz", pronunciation: "se-KIZ", english: "8", russian: "8" },
+      { turkish: "Dokuz", pronunciation: "do-KUZ", english: "9", russian: "9" },
+      { turkish: "On", pronunciation: "on", english: "10", russian: "10" },
+    ],
+  },
+  {
+    title: "11-19 (on + digit)",
+    items: [
+      { turkish: "On bir", pronunciation: "on bir", english: "11", russian: "11" },
+      { turkish: "On iki", pronunciation: "on i-KI", english: "12", russian: "12" },
+      { turkish: "On üç", pronunciation: "on üch", english: "13", russian: "13" },
+      { turkish: "On dört", pronunciation: "on dört", english: "14", russian: "14" },
+      { turkish: "On beş", pronunciation: "on besh", english: "15", russian: "15" },
+    ],
+  },
+  {
+    title: "Tens",
+    items: [
+      { turkish: "Yirmi", pronunciation: "yir-MI", english: "20", russian: "20" },
+      { turkish: "Otuz", pronunciation: "o-TUZ", english: "30", russian: "30" },
+      { turkish: "Kırk", pronunciation: "kirk", english: "40", russian: "40" },
+      { turkish: "Elli", pronunciation: "el-LI", english: "50", russian: "50" },
+      { turkish: "Altmış", pronunciation: "alt-MISH", english: "60", russian: "60" },
+      { turkish: "Yetmiş", pronunciation: "yet-MISH", english: "70", russian: "70" },
+      { turkish: "Seksen", pronunciation: "sek-SEN", english: "80", russian: "80" },
+      { turkish: "Doksan", pronunciation: "dok-SAN", english: "90", russian: "90" },
+    ],
+  },
+  {
+    title: "Big Numbers",
+    items: [
+      { turkish: "Yüz", pronunciation: "yüz", english: "100", russian: "100" },
+      { turkish: "İki yüz", pronunciation: "i-KI yüz", english: "200", russian: "200" },
+      { turkish: "Bin", pronunciation: "bin", english: "1,000", russian: "1000" },
+      { turkish: "Milyon", pronunciation: "mil-YON", english: "1,000,000", russian: "1000000" },
+    ],
+  },
+  {
+    title: "Formation Examples",
+    items: [
+      { turkish: "Yirmi bir", pronunciation: "yir-MI bir", english: "21 (20+1)", russian: "21" },
+      { turkish: "Otuz beş", pronunciation: "o-TUZ besh", english: "35 (30+5)", russian: "35" },
+      { turkish: "Yüz kırk iki", pronunciation: "yüz kirk i-KI", english: "142 (100+40+2)", russian: "142" },
+      { turkish: "Bin dokuz yüz", pronunciation: "bin do-KUZ yüz", english: "1900", russian: "1900" },
+    ],
+  },
+];
+
+// Questions
+const questionGroups: PhraseGroup[] = [
   {
     title: "Who / What?",
     items: [
@@ -105,7 +185,7 @@ const phraseGroups: PhraseGroup[] = [
     ],
   },
   {
-    title: "Where is...?",
+    title: "Where?",
     items: [
       { turkish: "... nerede?", pronunciation: "... ne-RE-de?", english: "Where is ...?", russian: "Где ...?" },
       { turkish: "Tuvalet nerede?", pronunciation: "tu-va-LET ne-RE-de?", english: "Where is the toilet?", russian: "Где туалет?" },
@@ -123,7 +203,7 @@ const phraseGroups: PhraseGroup[] = [
     ],
   },
   {
-    title: "How to...?",
+    title: "How?",
     items: [
       { turkish: "... nasıl?", pronunciation: "... na-SIL?", english: "How is ...? / How to ...?", russian: "Как ...?" },
       { turkish: "Nasılsın?", pronunciation: "na-SIL-sin?", english: "How are you?", russian: "Как дела?" },
@@ -132,7 +212,7 @@ const phraseGroups: PhraseGroup[] = [
     ],
   },
   {
-    title: "When is...?",
+    title: "When?",
     items: [
       { turkish: "... ne zaman?", pronunciation: "... ne za-MAN?", english: "When is ...?", russian: "Когда ...?" },
       { turkish: "Saat kaç?", pronunciation: "sa-AT kach?", english: "What time is it?", russian: "Который час?" },
@@ -160,8 +240,41 @@ function PhraseColumn({ group }: { group: PhraseGroup }) {
   );
 }
 
+function CategorySection({
+  title,
+  groups,
+  atom,
+}: {
+  title: string;
+  groups: PhraseGroup[];
+  atom: ReturnType<typeof atomWithStorage<boolean>>;
+}) {
+  const [isOpen, setIsOpen] = useAtom(atom);
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="border-b last:border-b-0">
+      <CollapsibleTrigger className="flex items-center gap-2 w-full py-2 hover:bg-muted/50 transition-colors px-1 rounded">
+        {isOpen ? (
+          <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+        ) : (
+          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+        )}
+        <span className="font-medium text-sm">{title}</span>
+        <span className="text-xs text-muted-foreground">({groups.length} groups)</span>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 py-4 pl-6">
+          {groups.map((group) => (
+            <PhraseColumn key={group.title} group={group} />
+          ))}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 export function QuickReference() {
-  const [isOpen, setIsOpen] = useAtom(quickReferenceOpenAtom);
+  const [isOpen, setIsOpen] = useAtom(quickRefMainOpenAtom);
 
   return (
     <Card className="mb-6">
@@ -179,12 +292,11 @@ export function QuickReference() {
           </CardHeader>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {phraseGroups.map((group) => (
-                <PhraseColumn key={group.title} group={group} />
-              ))}
-            </div>
+          <CardContent className="pt-0">
+            <CategorySection title="Grammar Basics" groups={grammarGroups} atom={quickRefGrammarOpenAtom} />
+            <CategorySection title="Common Words & Phrases" groups={commonGroups} atom={quickRefCommonOpenAtom} />
+            <CategorySection title="Numbers" groups={numberGroups} atom={quickRefNumbersOpenAtom} />
+            <CategorySection title="Questions" groups={questionGroups} atom={quickRefQuestionsOpenAtom} />
           </CardContent>
         </CollapsibleContent>
       </Collapsible>
