@@ -95,6 +95,16 @@ const phraseGroups: PhraseGroup[] = [
     ],
   },
   {
+    title: "Who / What?",
+    items: [
+      { turkish: "Kim?", pronunciation: "kim?", english: "Who?", russian: "Кто?" },
+      { turkish: "Kim o?", pronunciation: "kim o?", english: "Who is that?", russian: "Кто это?" },
+      { turkish: "Bu kim?", pronunciation: "bu kim?", english: "Who is this?", russian: "Кто это?" },
+      { turkish: "Ne?", pronunciation: "ne?", english: "What?", russian: "Что?" },
+      { turkish: "Ne oldu?", pronunciation: "ne ol-DU?", english: "What happened?", russian: "Что случилось?" },
+    ],
+  },
+  {
     title: "Where is...?",
     items: [
       { turkish: "... nerede?", pronunciation: "... ne-RE-de?", english: "Where is ...?", russian: "Где ...?" },
