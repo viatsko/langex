@@ -35,7 +35,7 @@ updates:
       interval: "daily"
       time: "13:47"
       timezone: "Europe/Zurich"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 10
 
   # Docker dependencies
   - package-ecosystem: "docker"
