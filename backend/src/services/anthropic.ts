@@ -219,5 +219,10 @@ If the question is not about translating something specific, set shouldSaveToDic
     throw new Error("Unexpected response type");
   }
 
-  return parseJsonResponse(content.text);
+  return parseJsonResponse(content.text) as {
+    answer: string;
+    turkish?: string;
+    shouldSaveToDictionary: boolean;
+    dictionaryEntry?: TranslationResult;
+  };
 }
