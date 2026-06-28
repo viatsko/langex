@@ -1595,12 +1595,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^22.10.7":
-  version: 22.19.7
-  resolution: "@types/node@npm:22.19.7"
+"@types/node@npm:^26.0.1":
+  version: 26.0.1
+  resolution: "@types/node@npm:26.0.1"
   dependencies:
-    undici-types: "npm:~6.21.0"
-  checksum: 10c0/0a4b13fd51306a72393f145693063e074be1bf884bdc642c879436d2c053ac9d573cc0a0d69867f60b14d3f1b9d03317e8ec0e4377f7527cb645e7b2a5d34045
+    undici-types: "npm:~8.3.0"
+  checksum: 10c0/31d204333c70124da6bcac7d1f27d8980149fe3f95a8419bfcd19c3e5823705c0e370d71ac34399352e1263b2d5fc41c87af964ec81e5a05a32224d65d8d224e
   languageName: node
   linkType: hard
 
@@ -2975,7 +2975,7 @@ __metadata:
     "@prisma/client": "npm:6.19.2"
     "@types/cors": "npm:^2.8.17"
     "@types/express": "npm:^5.0.0"
-    "@types/node": "npm:^22.10.7"
+    "@types/node": "npm:^26.0.1"
     cors: "npm:^2.8.5"
     dotenv-cli: "npm:^8.0.0"
     express: "npm:^4.21.2"
@@ -3000,7 +3000,7 @@ __metadata:
     "@radix-ui/react-tabs": "npm:^1.1.2"
     "@radix-ui/react-toast": "npm:^1.2.4"
     "@radix-ui/react-tooltip": "npm:^1.2.8"
-    "@types/node": "npm:^22.10.7"
+    "@types/node": "npm:^26.0.1"
     "@types/react": "npm:^19.0.7"
     "@types/react-dom": "npm:^19.0.3"
     autoprefixer: "npm:^10.4.20"
@@ -4485,17 +4485,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici-types@npm:~6.21.0":
-  version: 6.21.0
-  resolution: "undici-types@npm:6.21.0"
-  checksum: 10c0/c01ed51829b10aa72fc3ce64b747f8e74ae9b60eafa19a7b46ef624403508a54c526ffab06a14a26b3120d055e1104d7abe7c9017e83ced038ea5cf52f8d5e04
-  languageName: node
-  linkType: hard
-
 "undici-types@npm:~7.16.0":
   version: 7.16.0
   resolution: "undici-types@npm:7.16.0"
   checksum: 10c0/3033e2f2b5c9f1504bdc5934646cb54e37ecaca0f9249c983f7b1fc2e87c6d18399ebb05dc7fd5419e02b2e915f734d872a65da2e3eeed1813951c427d33cc9a
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~8.3.0":
+  version: 8.3.0
+  resolution: "undici-types@npm:8.3.0"
+  checksum: 10c0/c8aa7e2fbebfce519654dafadc0ece59be888d2ccaf180fb4495da875e7b536d2456345c384069c7e6f3e9c9ab7435f074957da306f142343eee86ff8048855a
   languageName: node
   linkType: hard
 
