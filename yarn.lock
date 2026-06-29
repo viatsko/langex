@@ -663,18 +663,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/client@npm:6.19.2":
-  version: 6.19.2
-  resolution: "@prisma/client@npm:6.19.2"
+"@prisma/client-runtime-utils@npm:7.8.0":
+  version: 7.8.0
+  resolution: "@prisma/client-runtime-utils@npm:7.8.0"
+  checksum: 10c0/a7de097e822aeafd46cd91184ddcdab119b605a3b4752358c69fa367dfc6c702e0e7fbbd23e54ec6c55da1afbadc017c3481c60efcc6778a16445aa47065e43e
+  languageName: node
+  linkType: hard
+
+"@prisma/client@npm:7.8.0":
+  version: 7.8.0
+  resolution: "@prisma/client@npm:7.8.0"
+  dependencies:
+    "@prisma/client-runtime-utils": "npm:7.8.0"
   peerDependencies:
     prisma: "*"
-    typescript: ">=5.1.0"
+    typescript: ">=5.4.0"
   peerDependenciesMeta:
     prisma:
       optional: true
     typescript:
       optional: true
-  checksum: 10c0/b1b81171af50627275f1f66ee44652363eb9b3e0fac60590f15a99e48ca434f0cbf8580c252f0b8f4268468be219ba4f18e338c6275a038f8473fad809a782f7
+  checksum: 10c0/bebf35fe26b3e4356a0a89f57828456093c0f87cac4c7af8d05634552562db08eca28f3da7fd356ede09a48f08fce605506b3625435423ff62f29b98a1fdb54f
   languageName: node
   linkType: hard
 
@@ -2867,7 +2876,7 @@ __metadata:
   resolution: "langex-backend@workspace:backend"
   dependencies:
     "@anthropic-ai/sdk": "npm:^0.106.0"
-    "@prisma/client": "npm:6.19.2"
+    "@prisma/client": "npm:7.8.0"
     "@types/cors": "npm:^2.8.17"
     "@types/express": "npm:^5.0.0"
     "@types/node": "npm:^26.0.1"
