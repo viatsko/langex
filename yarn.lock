@@ -1624,12 +1624,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^19.0.7":
-  version: 19.2.9
-  resolution: "@types/react@npm:19.2.9"
+"@types/react@npm:^19.2.17":
+  version: 19.2.17
+  resolution: "@types/react@npm:19.2.17"
   dependencies:
     csstype: "npm:^3.2.2"
-  checksum: 10c0/91c6839edd10ebdab4cd686d2a744e6ae078ed5831a36d48284ae92df0463c89bda1084ffdd2e6445f0716236c2c6ae0828b82f70720727632331695f4581d2a
+  checksum: 10c0/bc2c4af96b3e480604424de70d5ebda90c5f4b485df471858c0bc2d7d70364b606ec3c4d8579f94f01aa0c6c0591f56bcf14cba5689f5eea4b74250ccdc3a232
   languageName: node
   linkType: hard
 
@@ -2896,7 +2896,7 @@ __metadata:
     "@radix-ui/react-toast": "npm:^1.2.4"
     "@radix-ui/react-tooltip": "npm:^1.2.8"
     "@types/node": "npm:^26.0.1"
-    "@types/react": "npm:^19.0.7"
+    "@types/react": "npm:^19.2.17"
     "@types/react-dom": "npm:^19.0.3"
     autoprefixer: "npm:^10.5.2"
     class-variance-authority: "npm:^0.7.1"
