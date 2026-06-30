@@ -13,7 +13,7 @@
     "db:studio": "dotenv -e ../.env -- prisma studio"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.106.0",
+    "@anthropic-ai/sdk": "^0.107.0",
     "@prisma/client": "6.19.2",
     "cors": "^2.8.5",
     "express": "^5.2.1",
